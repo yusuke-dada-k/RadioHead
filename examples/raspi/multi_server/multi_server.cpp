@@ -20,26 +20,26 @@
 #include <RH_RF69.h>
 #include <RH_RF95.h>
 
-// Raspberri PI Lora Gateway for multiple modules 
+// Raspberri PI Lora Gateway for multiple modules
 // see https://github.com/hallard/RPI-Lora-Gateway
 #define BOARD_PI_LORA_GATEWAY
 
-// Now we include RasPi_Boards.h so this will expose defined 
+// Now we include RasPi_Boards.h so this will expose defined
 // constants with CS/IRQ/RESET/on board LED pins definition
 #include "../RasPiBoards.h"
 
 // User Led on GPIO18 so P1 connector pin #12
-#define LED_PIN  RPI_V2_GPIO_P1_12     
+#define LED_PIN  RPI_V2_GPIO_P1_12
 
-// Our RF95 module 1 Configuration 
+// Our RF95 module 1 Configuration
 #define RF95_1_NODE_ID    1
 #define RF95_1_FREQUENCY  915.00
 
-// Our RF95 module 3 Configuration 
+// Our RF95 module 3 Configuration
 #define RF95_2_NODE_ID    1
 #define RF95_2_FREQUENCY  433.00
 
-// Our RFM69 module 3 Configuration 
+// Our RFM69 module 3 Configuration
 #define RF69_3_NODE_ID    1
 #define RF69_3_GROUP_ID   69
 #define RF69_3_FREQUENCY  433.00
@@ -64,7 +64,7 @@ RHGenericDriver * drivers[NB_MODULES];
 
 // Create an instance of a driver for 3 modules
 // In our case RadioHead code does not use IRQ
-// callback, bcm2835 does provide such function, 
+// callback, bcm2835 does provide such function,
 // but keep line state providing function to test
 // Rising/falling/change on GPIO Pin
 RH_RF95 rf95_1(MOD1_CS_PIN, MOD1_IRQ_PIN);
@@ -97,11 +97,11 @@ Input   : Module Index from modules table
 Output  : -
 Comments: -
 ====================================================================== */
-void getReceivedData( uint8_t index) 
+void getReceivedData( uint8_t index)
 {
   RHGenericDriver * driver = drivers[index];
   if (driver->available()) {
-    // RH_RF95_MAX_MESSAGE_LEN is > RH_RF69_MAX_MESSAGE_LEN, 
+    // RH_RF95_MAX_MESSAGE_LEN is > RH_RF69_MAX_MESSAGE_LEN,
     // So we take the maximum size to be able to handle all
     uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
     uint8_t len  = sizeof(buf);
@@ -121,7 +121,7 @@ void getReceivedData( uint8_t index)
 
       strftime(time_buff, sizeof(time_buff), "%H:%M:%S", tm_info);
 
-      printf("%s Mod%s [%02d] #%d => #%d %ddB: ", 
+      printf("%s Mod%s [%02d] #%d => #%d %ddB: ",
                 time_buff, MOD_name[index], len, from, to, rssi);
       printbuffer(buf, len);
     } else {
@@ -143,7 +143,7 @@ bool initRadioModule( uint8_t index) {
   //RH_RF69 * driver = (RH_RF69 *) drivers[index];
 
   // Module Information
-  printf( "%s (CS=GPIO%d, IRQ=GPIO%d, RST=GPIO%d, LED=GPIO%d)", 
+  printf( "%s (CS=GPIO%d, IRQ=GPIO%d, RST=GPIO%d, LED=GPIO%d)",
           MOD_name[index], CSN_pins[index], IRQ_pins[index], RST_pins[index], LED_pins[index] );
 
   // Light Module LED
@@ -153,10 +153,10 @@ bool initRadioModule( uint8_t index) {
   pinMode(IRQ_pins[index], INPUT);
   bcm2835_gpio_set_pud(IRQ_pins[index], BCM2835_GPIO_PUD_DOWN);
 
-  // we enable rising edge detection 
+  // we enable rising edge detection
   bcm2835_gpio_ren(IRQ_pins[index]);
 
-  // Reset module and blink the module LED 
+  // Reset module and blink the module LED
   digitalWrite(LED_pins[index], HIGH);
   pinMode(RST_pins[index], OUTPUT);
   digitalWrite(RST_pins[index], LOW);
@@ -170,11 +170,11 @@ bool initRadioModule( uint8_t index) {
   } else {
     // Since we'll check IRQ line with bcm_2835 Rising edge detection
     // In case radio already have a packet, IRQ is high and will never
-    // go to low until cleared, so never fire IRQ LOW to HIGH again 
+    // go to low until cleared, so never fire IRQ LOW to HIGH again
     // Except if we clear IRQ flags and discard packet if any!
     // ==> This is now done before reset
     //driver->available();
-    // now we can enable rising edge detection 
+    // now we can enable rising edge detection
     //bcm2835_gpio_ren(IRQ_pins[index]);
 
     // set Node ID
@@ -182,7 +182,7 @@ bool initRadioModule( uint8_t index) {
     driver->setHeaderFrom(MOD_id[index]);  // Transmit From Node
 
     // Get all frame, we're in demo mode
-    driver->setPromiscuous(true);   
+    driver->setPromiscuous(true);
 
     // We need to check module type since generic driver does
     // not expose driver specific methods
@@ -215,7 +215,7 @@ bool initRadioModule( uint8_t index) {
       case IDX_MOD3:
         // Adjust Frequency
         ((RH_RF69 *) driver)->setFrequency( MOD_freq[index] );
-        
+
         // Set TX power to High power RFMH69
         //((RH_RF69 *) driver)->setTxPower(13);
         ((RH_RF69 *) driver)->setTxPower(20);
@@ -234,7 +234,7 @@ bool initRadioModule( uint8_t index) {
     printf( " OK!, NodeID=%d @ %3.2fMHz\n", MOD_id[index], MOD_freq[index] );
     return true;
   }
-  
+
   return false;
 }
 
@@ -249,10 +249,10 @@ int main (int argc, const char* argv[] )
 {
   // LED blink ms timer saving
   unsigned long led_blink[NB_MODULES] = {0,0,0};
-  
+
   // caught CTRL-C to do clean-up
   signal(SIGINT, sig_handler);
-  
+
   // Display app name
   printf( "%s\n", __BASEFILE__);
   for (uint8_t i=0; i<strlen(__BASEFILE__); i++) {
@@ -271,7 +271,7 @@ int main (int argc, const char* argv[] )
   drivers[IDX_MOD2] = &rf95_2;
   drivers[IDX_MOD3] = &rf69_3;
 
-  // light onboard LEDs 
+  // light onboard LEDs
   pinMode(LED_PIN, OUTPUT);
   digitalWrite(LED_PIN, HIGH);
 
@@ -283,7 +283,7 @@ int main (int argc, const char* argv[] )
     digitalWrite(CSN_pins[i], HIGH);
   }
 
-  // configure all modules I/O pins 
+  // configure all modules I/O pins
   for (uint8_t i=0 ; i<ENABLED_MODULES; i++) {
     // configure all modules
     if (!initRadioModule(i)){
@@ -306,9 +306,9 @@ int main (int argc, const char* argv[] )
     printf( "Listening for incoming packets...\n" );
   }
 
-  // Begin the main loop code 
+  // Begin the main loop code
   // ========================
-  while (!force_exit) { 
+  while (!force_exit) {
     // Loop thru modules
     for (uint8_t idx=0 ; idx<ENABLED_MODULES; idx++) {
       // Rising edge fired ?
@@ -316,11 +316,11 @@ int main (int argc, const char* argv[] )
         // Now clear the eds flag by setting it to 1
         bcm2835_gpio_set_eds(IRQ_pins[idx]);
         //printf("Packet Received, Rising event detect for pin GPIO%d\n", IRQ_pins[idx]);
-  
+
         // Start associated led blink
         led_blink[idx] = millis();
         digitalWrite(LED_pins[idx], HIGH);
-        getReceivedData(idx); 
+        getReceivedData(idx);
       } // has IRQ
 
       // A module led blink timer expired ? Light off
@@ -329,10 +329,10 @@ int main (int argc, const char* argv[] )
         digitalWrite(LED_pins[idx], LOW);
       } // Led timer expired
 
-      getReceivedData(idx); 
+      getReceivedData(idx);
 
     } // For Modules
-    
+
     // On board led blink (500ms off / 500ms On)
     digitalWrite(LED_PIN, (millis()%1000)<500?LOW:HIGH);
 
