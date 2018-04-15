@@ -350,6 +350,20 @@ int main (int argc, const char* argv[] )
     digitalWrite(LED_pins[i], LOW);
     digitalWrite(CSN_pins[i], HIGH);
   }
+
+  for (uint8_t i=0 ; i<ENABLED_MODULES; i++) {
+    // CS Ping as output and set to 1
+    // to avoid any problem with SPI sharing
+    pinMode(CSN_pins[i], OUTPUT);
+    digitalWrite(CSN_pins[i], HIGH);
+
+    // Reset modules
+    pinMode(RST_pins[i], OUTPUT);
+    digitalWrite(RST_pins[i], LOW);
+
+    bcm2835_delay(150);
+  }
+
   printf( "\n%s, done my job!\n", __BASEFILE__ );
   bcm2835_close();
   return 0;
