@@ -356,11 +356,11 @@ int main (int argc, const char* argv[] )
     // to avoid any problem with SPI sharing
     pinMode(CSN_pins[i], OUTPUT);
     digitalWrite(CSN_pins[i], HIGH);
+    bcm2835_delay(150);
 
     // Reset modules
     pinMode(RST_pins[i], OUTPUT);
     digitalWrite(RST_pins[i], LOW);
-
     bcm2835_delay(150);
   }
 
