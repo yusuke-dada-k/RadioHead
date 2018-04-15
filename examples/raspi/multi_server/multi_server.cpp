@@ -294,9 +294,15 @@ int main (int argc, const char* argv[] )
   // All init went fine, continue specific init if any
   if (!force_exit) {
     // Set all modules in receive mode
+#if (1 <= ENABLED_MODULES)
     rf95_1.setModeRx();
+#endif /* (1 <= ENABLED_MODULES) */
+#if (2 <= ENABLED_MODULES)
     rf95_2.setModeRx();
+#endif /* (2 <= ENABLED_MODULES) */
+#if (3 <= ENABLED_MODULES)
     rf69_3.setModeRx();
+#endif /* (3 <= ENABLED_MODULES) */
     printf( "Listening for incoming packets...\n" );
   }
 
